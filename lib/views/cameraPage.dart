@@ -1,5 +1,7 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:hightsign_project/classes/ffmpegProcessor.dart';
+import 'package:hightsign_project/helpers/formatTimes/formatTime.dart';
 import 'package:hightsign_project/views/playerVideo.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
@@ -53,23 +55,50 @@ class _CameraPageState extends State<CameraPage> {
   Future<void> recordingVideo() async {
     if (_isRecording) {
       setState(() => _isRecording = false);
+      // await controllerCamera.pauseVideoRecording();
+
       final rootFile = await controllerCamera.stopVideoRecording();
+
       final newPathFile =
           await moveVideoRecordingInRootToYourFolder(rootFile.path);
 
-      // VideoPlayerController _videoPlayerController =
-      //     VideoPlayerController.file(File(newPathFile));
-      // await _videoPlayerController.initialize();
+      FFMPEGProcressor ffmpeg = FFMPEGProcressor();
 
-      // print(
-      //     "DURATION OF VIDEO ${_videoPlayerController.value.duration.inMilliseconds}");
+      Duration timeStart =
+          Duration(milliseconds: convertSecondToMilisecond(_durationHindsign));
+      Duration timeEnd =
+          Duration(milliseconds: convertSecondToMilisecond(_durationCount));
 
-      final route = MaterialPageRoute(
-          builder: (_) => VideoPlayerCustom(filePath: newPathFile));
-      Navigator.push(context, route);
+      if (timeStart.inSeconds - 30 <= 0) {
+        timeStart = const Duration(seconds: 0);
+        await ffmpeg.trimVideo(
+          newPathFile,
+          formatHHMMSS(
+              timeStart.inHours, timeStart.inMinutes, timeStart.inSeconds),
+          formatHHMMSS(timeEnd.inHours, timeEnd.inMinutes, timeEnd.inSeconds),
+        );
+
+        // IF DURATION <= 30s
+      } else {
+        timeStart = Duration(seconds: timeStart.inSeconds - 30);
+        await ffmpeg.trimVideo(
+          newPathFile,
+          formatHHMMSS(
+              timeStart.inHours, timeStart.inMinutes, timeStart.inSeconds),
+          formatHHMMSS(timeEnd.inHours, timeEnd.inMinutes, timeEnd.inSeconds),
+        );
+
+        // IF DURATION > 30s
+      }
+      Navigator.pop(context);
     } else {
       await controllerCamera.prepareForVideoRecording();
+      // await controllerCamera.startVideoRecording(
+      //     onAvailable: (image) => {
+
+      //     });
       await controllerCamera.startVideoRecording();
+
       setState(() => _isRecording = true);
     }
   }

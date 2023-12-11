@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
+import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 
@@ -16,12 +17,17 @@ class FFMPEGProcressor {
     try {
       String formatStartTime = formatDurationToString(startTime);
       String formatEndTime = formatDurationToString(endTime);
-      print("FORMAT START $formatStartTime");
-      print("FORMAT END $formatEndTime");
+
       Directory dir = await getApplicationDocumentsDirectory();
-      var uuid = Uuid();
-      String out = "${dir.path}/yourDirectory/${uuid.v4()}.mp4";
-      print("OUT $out");
+      DateTime now = DateTime.now();
+
+      var formatDate = DateFormat("MM-dd-yyyy HH:mm")
+          .format(now)
+          .toString()
+          .replaceAll(" ", "-");
+
+      String out = "${dir.path}/yourDirectory/$formatDate.mp4";
+
       String command =
           '-i $inputPath -ss $formatStartTime -t $formatEndTime -async 1 -c copy $out';
 
@@ -29,8 +35,7 @@ class FFMPEGProcressor {
       File oldVideo = File(inputPath);
 
       if (oldVideo.existsSync()) {
-        print("DA XOA VIDEO CU");
-        // oldVideo.deleteSync();
+        oldVideo.deleteSync();
       }
 
       if (returnCode == 0) {

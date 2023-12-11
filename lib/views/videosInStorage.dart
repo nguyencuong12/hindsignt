@@ -63,9 +63,6 @@ class _VideosInStorageState extends State<VideosInStorage> {
                       onTap: () async {
                         // FFMPEGProcressor ffmpeg = FFMPEGProcressor();
 
-                        // await ffmpeg.trimVideo(_listFile[i].path,
-                        //     formatHHMMSS(0, 0, 2), formatHHMMSS(0, 0, 4));
-
                         openVideoFormPath(_listFile[i].path);
                       },
                       child: Container(
